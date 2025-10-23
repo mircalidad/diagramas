@@ -14,16 +14,6 @@
     <style>
         /* Estilos base */
         body { margin: 0; padding: 0; font-family: system-ui, -apple-system, sans-serif; }
-        
-        /* Estilo para que el texto editable parezca un campo de texto al editar */
-        [contenteditable="true"]:focus {
-            outline: 2px solid #3b82f6; /* Blue-500 */
-            outline-offset: 2px;
-            background-color: #ffffff;
-            border-radius: 4px;
-            padding: 2px;
-        }
-
         /* Estilo para manejar saltos de línea en el área de literatura */
         .whitespace-pre-wrap {
             white-space: pre-wrap;
@@ -34,326 +24,134 @@
     <div id="root"></div>
     
     <script type="text/babel">
-        const { useState } = React;
+        const { useState } = React; // Aunque no se use, lo mantengo si quieres usar React Hook para el estado.
 
-        // --- INITIAL DATA ---
-        const initialCenturies = [
-            {
-                id: 1,
-                century: "XV",
-                color: "bg-red-100",
-                borderColor: "border-red-500",
-                iconColor: "text-red-600",
-                iconName: "Crown",
-                title: "Fin Edad Media → Edad Moderna",
-                themes: ["Reyes Católicos", "Descubrimiento", "Humanismo"],
-                events: [
-                    { id: 101, year: "1406-1454", text: "Juan II de Castilla (válido Álvaro de Luna)" },
-                    { id: 102, year: "1440", text: "Imprenta - Biblia de Gutenberg" },
-                    { id: 103, year: "1479", text: "Reyes Católicos - Comienzo Edad Moderna / Tratado de Alcaçovas" },
-                    { id: 104, year: "1492", text: "Conquista Granada / Descubrimiento América / Gramática Castellana (Nebrija)" },
-                    { id: 105, year: "1499", text: "Fernando de Rojas: La Celestina" },
-                ],
-                literature: "Humanismo: Santillana, Juan de Mena, Juan del Encina, Gómez Manrique"
-            },
-            {
-                id: 2,
-                century: "XVI",
-                color: "bg-amber-100",
-                borderColor: "border-amber-600",
-                iconColor: "text-amber-700",
-                iconName: "Globe",
-                title: "Renacimiento y Siglos de Oro",
-                themes: ["Imperio Español", "Español Clásico", "Contrarreforma"],
-                events: [
-                    { id: 201, year: "1516-1556", text: "Carlos I unifica Castilla y Aragón" },
-                    { id: 202, year: "1556-1598", text: "Felipe II" },
-                    { id: 203, year: "1561", text: "Felipe II traslada corte a Madrid" }
-                ],
-                literature: "SURGE EL ESPAÑOL CLÁSICO - Renacimiento, Clasicismo, Misticismo. Toledo y Sevilla centros lingüísticos"
-            },
-            {
-                id: 3,
-                century: "XVII",
-                color: "bg-purple-100",
-                borderColor: "border-purple-600",
-                iconColor: "text-purple-700",
-                iconName: "Feather",
-                title: "Barroco y Decadencia",
-                themes: ["Austrias Menores", "Siglo de Oro", "Barroco"],
-                events: [
-                    { id: 301, year: "1598-1621", text: "Felipe III (Austrias Menores)" },
-                    { id: 302, year: "1665-1700", text: "Carlos II" },
-                    { id: 303, year: "1681", text: "Muerte Calderón de la Barca - FIN SIGLO DE ORO" }
-                ],
-                literature: "BARROCO: Cervantes, Lope de Vega, Calderón de la Barca. Decadencia política pero esplendor cultural"
-            },
-            {
-                id: 4,
-                century: "XVIII",
-                color: "bg-blue-100",
-                borderColor: "border-blue-600",
-                iconColor: "text-blue-700",
-                iconName: "Landmark",
-                title: "Ilustración y Borbones",
-                themes: ["RAE", "Ilustración", "Despotismo Ilustrado"],
-                events: [
-                    { id: 401, year: "1701-1713", text: "Guerra Sucesión: Felipe V vs Carlos de Austria" },
-                    { id: 402, year: "1713", text: "Fundación RAE / Tratado de Utrecht 1713-14" },
-                    { id: 403, year: "1726-39", text: "Diccionario de Autoridades (RAE)" },
-                ],
-                literature: "SIGLO DE LAS LUCES - Clasicismo, afrancesamiento. Feijoo, Jovellanos, Cadalso (Cartas Marruecas), Moratín (El sí de las niñas). Prerromanticismo"
-            },
-            {
-                id: 5,
-                century: "XIX",
-                color: "bg-green-100",
-                borderColor: "border-green-600",
-                iconColor: "text-green-700",
-                iconName: "BookOpen",
-                title: "Edad Contemporánea",
-                themes: ["Romanticismo", "Realismo", "Gen. del 98"],
-                events: [
-                    { id: 501, year: "1808-1814", text: "Guerra Independencia - Invasión napoleónica - José Bonaparte 'Pepe Botella'" },
-                    { id: 502, year: "1854", text: "Gramática de la lengua castellana" },
-                    { id: 503, year: "1857", text: "Ley Moyano: fijar idioma en enseñanza y administración" }
-                ],
-                literature: "ROMANTICISMO: Bécquer, Rosalía de Castro. REALISMO: Galdós, Clarín (La Regenta), Pardo Bazán (Los pazos de Ulloa). MODERNISMO: A. Machado. GEN. 98: Unamuno, Azorín, Baroja, Valle-Inclán"
-            }
-        ];
-
-        // --- ICONOS SVG ---
-        const Crown = (props) => (
-            <svg {...props} width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M2 12l3-3 3 3 4-8 4 8 3-3 3 3V20H2z"/>
-            </svg>
-        );
-        const Globe = (props) => (
-            <svg {...props} width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="2" y1="12" x2="22" y2="12"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-            </svg>
-        );
-        const Feather = (props) => (
-            <svg {...props} width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/>
-                <line x1="16" y1="8" x2="2" y2="22"/>
-                <line x1="17.5" y1="15" x2="9" y2="15"/>
-            </svg>
-        );
-        const Landmark = (props) => (
-            <svg {...props} width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="3" y1="22" x2="21" y2="22"/>
-                <line x1="6" y1="18" x2="6" y2="11"/>
-                <line x1="10" y1="18" x2="10" y2="11"/>
-                <line x1="14" y1="18" x2="14" y2="11"/>
-                <line x1="18" y1="18" x2="18" y2="11"/>
-                <polygon points="12 2 20 7 4 7"/>
-            </svg>
-        );
-        const BookOpen = (props) => (
-            <svg {...props} width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/>
-                <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>
-            </svg>
-        );
-        const Scroll = (props) => (
-            <svg {...props} width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M8 2v4"/>
-                <path d="M12 2v4"/>
-                <path d="M16 2v4"/>
-                <rect x="6" y="4" width="12" height="16" rx="2"/>
-                <path d="M6 8h12"/>
-            </svg>
-        );
-        const PlusCircle = (props) => (
-            <svg {...props} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-        );
-        const XCircle = (props) => (
-            <svg {...props} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-        );
-
-        const iconMap = {
-            Crown: Crown,
-            Globe: Globe,
-            Feather: Feather,
-            Landmark: Landmark,
-            BookOpen: BookOpen
-        };
+        // --- ICONOS SVG --- (Simplificados)
+        const Crown = () => (<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 12l3-3 3 3 4-8 4 8 3-3 3 3V20H2z"/></svg>);
+        const Globe = () => (<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>);
+        const Feather = () => (<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/><line x1="16" y1="8" x2="2" y2="22"/><line x1="17.5" y1="15" x2="9" y2="15"/></svg>);
+        const Landmark = () => (<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="3" y1="22" x2="21" y2="22"/><line x1="6" y1="18" x2="6" y2="11"/><line x1="10" y1="18" x2="10" y2="11"/><line x1="14" y1="18" x2="14" y2="11"/><line x1="18" y1="18" x2="18" y2="11"/><polygon points="12 2 20 7 4 7"/></svg>);
+        const BookOpen = () => (<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>);
+        const Scroll = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 2v4"/><path d="M12 2v4"/><path d="M16 2v4"/><rect x="6" y="4" width="12" height="16" rx="2"/><path d="M6 8h12"/></svg>);
 
         // --- TIMELINE COMPONENT ---
         const Timeline = () => {
-            // Inicializa el estado con los datos o los carga desde localStorage si existen
-            const [centuries, setCenturies] = useState(() => {
-                const savedData = localStorage.getItem('timelineData');
-                return savedData ? JSON.parse(savedData) : initialCenturies;
-            });
-            const [isEditing, setIsEditing] = useState(false);
-            
-            // Estado para el nuevo evento a añadir (por siglo)
-            const [newEventData, setNewEventData] = useState({});
-
-            // Guarda los datos en localStorage cada vez que 'centuries' cambia
-            React.useEffect(() => {
-                localStorage.setItem('timelineData', JSON.stringify(centuries));
-            }, [centuries]);
-
-            // --- GENERIC EDIT HANDLERS (for title and literature) ---
-            const handleTitleEdit = (centuryId, newTitle) => {
-                setCenturies(prevCenturies =>
-                    prevCenturies.map(c =>
-                        c.id === centuryId ? { ...c, title: newTitle } : c
-                    )
-                );
-            };
-
-            const handleLiteratureEdit = (centuryId, newLiterature) => {
-                setCenturies(prevCenturies =>
-                    prevCenturies.map(c =>
-                        c.id === centuryId ? { ...c, literature: newLiterature } : c
-                    )
-                );
-            };
-
-            // --- EVENT HANDLERS ---
-            const handleEventEdit = (centuryId, eventId, field, newValue) => {
-                setCenturies(prevCenturies =>
-                    prevCenturies.map(c => {
-                        if (c.id === centuryId) {
-                            const updatedEvents = c.events.map(e =>
-                                e.id === eventId ? { ...e, [field]: newValue } : e
-                            );
-                            return { ...c, events: updatedEvents };
-                        }
-                        return c;
-                    })
-                );
-            };
-
-            const handleEventDelete = (centuryId, eventId) => {
-                if (!confirm("¿Estás seguro de que quieres eliminar este apunte?")) return;
-                
-                setCenturies(prevCenturies =>
-                    prevCenturies.map(c => {
-                        if (c.id === centuryId) {
-                            const updatedEvents = c.events.filter(e => e.id !== eventId);
-                            return { ...c, events: updatedEvents };
-                        }
-                        return c;
-                    })
-                );
-            };
-
-            const handleNewEventChange = (centuryId, field, value) => {
-                setNewEventData(prev => ({
-                    ...prev,
-                    [centuryId]: {
-                        ...prev[centuryId],
-                        [field]: value
-                    }
-                }));
-            };
-
-            const handleAddEvent = (centuryId) => {
-                const data = newEventData[centuryId];
-                if (!data || !data.year || !data.text) {
-                    alert("Por favor, introduce el año y el texto del nuevo apunte.");
-                    return;
+            // **DATOS COMPLETOS RECUPERADOS**
+            const centuries = [
+                {
+                    century: "XV",
+                    color: "bg-red-100",
+                    borderColor: "border-red-500",
+                    iconColor: "text-red-600",
+                    icon: Crown,
+                    title: "Fin Edad Media → Edad Moderna",
+                    themes: ["Reyes Católicos", "Descubrimiento", "Humanismo"],
+                    events: [
+                        { year: "1406-1454", text: "Juan II de Castilla (válido Álvaro de Luna)" },
+                        { year: "1416-1458", text: "Alfonso V impone el castellano en la corte" },
+                        { year: "1440", text: "Imprenta - Biblia de Gutenberg" },
+                        { year: "1444", text: "Álvaro de Luna: Virtuosas e claras mugeres" },
+                        { year: "1463", text: "Juan de Lucena: Diálogo de la Vida Beata" },
+                        { year: "1472", text: "Llegada imprenta a España (Sevilla, Burgos, Zaragoza)" },
+                        { year: "1476", text: "Jorge Manrique: Coplas a la muerte de su padre" },
+                        { year: "1479", text: "Reyes Católicos - Comienzo Edad Moderna / Tratado de Alcaçovas" },
+                        { year: "1492", text: "Conquista Granada / Descubrimiento América / Gramática Castellana (Nebrija)" },
+                        { year: "1499", text: "Fernando de Rojas: La Celestina" },
+                        { year: "1512-1515", text: "Anexión Reino Navarra - Fernando II + Germana de Foix" }
+                    ],
+                    literature: "Humanismo: Santillana, Juan de Mena, Juan del Encina, Gómez Manrique"
+                },
+                {
+                    century: "XVI",
+                    color: "bg-amber-100",
+                    borderColor: "border-amber-600",
+                    iconColor: "text-amber-700",
+                    icon: Globe,
+                    title: "Renacimiento y Siglos de Oro",
+                    themes: ["Imperio Español", "Español Clásico", "Contrarreforma"],
+                    events: [
+                        { year: "1504", text: "Muerte Isabel I de Castilla" },
+                        { year: "1506", text: "Felipe I el Hermoso rey (muere ese año)" },
+                        { year: "1507-1516", text: "Fernando II vuelve a ser rey" },
+                        { year: "1516-1556", text: "Carlos I unifica Castilla y Aragón" },
+                        { year: "1556-1598", text: "Felipe II" },
+                        { year: "1561", text: "Felipe II traslada corte a Madrid" }
+                    ],
+                    literature: "SURGE EL ESPAÑOL CLÁSICO - Renacimiento, Clasicismo, Misticismo. Toledo y Sevilla centros lingüísticos"
+                },
+                {
+                    century: "XVII",
+                    color: "bg-purple-100",
+                    borderColor: "border-purple-600",
+                    iconColor: "text-purple-700",
+                    icon: Feather,
+                    title: "Barroco y Decadencia",
+                    themes: ["Austrias Menores", "Siglo de Oro", "Barroco"],
+                    events: [
+                        { year: "1598-1621", text: "Felipe III (Austrias Menores)" },
+                        { year: "1621-1665", text: "Felipe IV" },
+                        { year: "1665-1700", text: "Carlos II" },
+                        { year: "1681", text: "Muerte Calderón de la Barca - FIN SIGLO DE ORO" }
+                    ],
+                    literature: "BARROCO: Cervantes, Lope de Vega, Calderón de la Barca. Decadencia política pero esplendor cultural"
+                },
+                {
+                    century: "XVIII",
+                    color: "bg-blue-100",
+                    borderColor: "border-blue-600",
+                    iconColor: "text-blue-700",
+                    icon: Landmark,
+                    title: "Ilustración y Borbones",
+                    themes: ["RAE", "Ilustración", "Despotismo Ilustrado"],
+                    events: [
+                        { year: "1700", text: "Muerte Carlos II el Hechizado" },
+                        { year: "1700-1746", text: "Felipe V - Monarquía absoluta francesa" },
+                        { year: "1701-1713", text: "Guerra Sucesión: Felipe V vs Carlos de Austria" },
+                        { year: "1707-1716", text: "Decretos Nueva Planta: castellano lengua administración" },
+                        { year: "1713", text: "Fundación RAE / Tratado de Utrecht 1713-14" },
+                        { year: "1726-39", text: "Diccionario de Autoridades (RAE)" },
+                        { year: "1737", text: "Luzán: La Poética" },
+                        { year: "1768", text: "Real Cédula Carlos III" }
+                    ],
+                    literature: "SIGLO DE LAS LUCES - Clasicismo, afrancesamiento. Feijoo, Jovellanos, Cadalso (Cartas Marruecas), Moratín (El sí de las niñas). Prerromanticismo"
+                },
+                {
+                    century: "XIX",
+                    color: "bg-green-100",
+                    borderColor: "border-green-600",
+                    iconColor: "text-green-700",
+                    icon: BookOpen,
+                    title: "Edad Contemporánea",
+                    themes: ["Romanticismo", "Realismo", "Gen. del 98"],
+                    events: [
+                        { year: "1808", text: "Libertad de prensa" },
+                        { year: "1808-1814", text: "Guerra Independencia - Invasión napoleónica - José Bonaparte 'Pepe Botella'" },
+                        { year: "1854", text: "Gramática de la lengua castellana" },
+                        { year: "1857", text: "Ley Moyano: fijar idioma en enseñanza y administración" }
+                    ],
+                    literature: "ROMANTICISMO: Bécquer, Rosalía de Castro. REALISMO: Galdós, Clarín (La Regenta), Pardo Bazán (Los pazos de Ulloa). MODERNISMO: A. Machado. GEN. 98: Unamuno, Azorín, Baroja, Valle-Inclán"
                 }
-
-                const newEvent = {
-                    id: Date.now(), // Unique ID
-                    year: data.year.trim(),
-                    text: data.text.trim()
-                };
-
-                setCenturies(prevCenturies =>
-                    prevCenturies.map(c =>
-                        c.id === centuryId
-                            ? { 
-                                ...c, 
-                                // Añadir y ordenar los eventos
-                                events: [...c.events, newEvent].sort((a, b) => {
-                                    // Intenta ordenar numéricamente, si falla, usa orden alfabético
-                                    const yearA = parseInt(a.year.split('-')[0].trim());
-                                    const yearB = parseInt(b.year.split('-')[0].trim());
-                                    if (!isNaN(yearA) && !isNaN(yearB)) {
-                                        return yearA - yearB;
-                                    }
-                                    return a.year.localeCompare(b.year);
-                                })
-                            }
-                            : c
-                    )
-                );
-
-                // Limpiar los campos de entrada
-                setNewEventData(prev => {
-                    const newPrev = { ...prev };
-                    delete newPrev[centuryId];
-                    return newPrev;
-                });
-            };
-            
-            // --- RENDER FUNCTIONS ---
-            const EditButton = () => (
-                <div className="flex gap-4 items-center">
-                    {/* Botón Volver a Home (CORREGIDO) */}
-                    <a href="index.html" className="py-2 px-4 rounded-full text-sm font-semibold transition-colors shadow-md bg-slate-200 text-slate-700 hover:bg-slate-300">
-                        ← Volver a Home
-                    </a>
-                    <button
-                        onClick={() => setIsEditing(!isEditing)}
-                        className={`py-2 px-4 rounded-full text-sm font-semibold transition-colors shadow-md ${
-                            isEditing
-                                ? 'bg-red-500 text-white hover:bg-red-600'
-                                : 'bg-indigo-500 text-white hover:bg-indigo-600'
-                        }`}
-                    >
-                        {isEditing ? 'Salir Modo Edición (Guardar)' : 'Activar Modo Edición ✏️'}
-                    </button>
-                </div>
-            );
-
-            // Componente para manejar la edición en línea
-            const EditableText = ({ tag: Tag = 'span', children, onSave, className, contentEditable = true }) => {
-                const handleBlur = (e) => {
-                    if (isEditing && contentEditable) {
-                         onSave(e.currentTarget.textContent);
-                    }
-                };
-
-                return (
-                    <Tag
-                        contentEditable={isEditing && contentEditable}
-                        onBlur={handleBlur}
-                        className={className}
-                        suppressContentEditableWarning={true}
-                    >
-                        {children}
-                    </Tag>
-                );
-            };
+            ];
 
             return (
                 <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-8">
                     <div className="max-w-7xl mx-auto">
+                        {/* CABECERA CORREGIDA CON BOTÓN HOME */}
                         <div className="flex justify-between items-center mb-6">
                             <h1 className="text-4xl font-bold text-slate-800">
                                 Historia de España: Evolución Lingüística y Cultural
                             </h1>
-                            <EditButton />
+                            <a href="index.html" className="py-2 px-4 rounded-full text-sm font-semibold transition-colors shadow-md bg-indigo-500 text-white hover:bg-indigo-600">
+                                ← Volver a Home
+                            </a>
                         </div>
                         <p className="text-left text-slate-600 mb-8">Siglos XV - XIX</p>
                         
-                        <div className="space-y-8">
-                            {centuries.map((century) => {
-                                const Icon = iconMap[century.iconName];
-                                const newEvent = newEventData[century.id] || {};
-
+                        <div className="space-y-6">
+                            {centuries.map((century, index) => {
+                                const Icon = century.icon;
                                 return (
-                                    <div key={century.id} className={`${century.color} rounded-lg border-l-8 ${century.borderColor} p-6 shadow-lg hover:shadow-xl transition-shadow`}>
+                                    <div key={index} className={`${century.color} rounded-lg border-l-8 ${century.borderColor} p-6 shadow-lg hover:shadow-xl transition-shadow`}>
                                         <div className="flex items-start gap-4">
                                             <div className={`${century.iconColor} mt-1`}>
                                                 <Icon />
@@ -362,16 +160,9 @@
                                             <div className="flex-1">
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <h2 className="text-3xl font-bold text-slate-800">Siglo {century.century}</h2>
-                                                    <EditableText
-                                                        tag="span"
-                                                        className="text-lg font-semibold text-slate-600"
-                                                        onSave={(newTitle) => handleTitleEdit(century.id, newTitle)}
-                                                    >
-                                                        → {century.title}
-                                                    </EditableText>
+                                                    <span className="text-lg font-semibold text-slate-600">→ {century.title}</span>
                                                 </div>
                                                 
-                                                {/* Themes (Mantener como solo lectura por simplicidad) */}
                                                 <div className="flex gap-2 mb-4 flex-wrap">
                                                     {century.themes.map((theme, i) => (
                                                         <span key={i} className="px-3 py-1 bg-white rounded-full text-sm font-medium text-slate-700 shadow-sm">
@@ -380,73 +171,20 @@
                                                     ))}
                                                 </div>
                                                 
-                                                <div className="grid md:grid-cols-2 gap-6">
+                                                <div className="grid md:grid-cols-2 gap-4">
                                                     {/* Sección de Eventos Históricos */}
                                                     <div>
                                                         <h3 className="font-bold text-slate-700 mb-2 flex items-center gap-2">
                                                             <Scroll />
                                                             Eventos Históricos
                                                         </h3>
-                                                        <ul className="space-y-3">
-                                                            {century.events.map((event) => (
-                                                                <li key={event.id} className="text-sm text-slate-700 flex items-start group">
-                                                                    <EditableText
-                                                                        tag="span"
-                                                                        className="font-semibold text-slate-900 min-w-[70px]"
-                                                                        onSave={(newValue) => handleEventEdit(century.id, event.id, 'year', newValue)}
-                                                                    >
-                                                                        {event.year}
-                                                                    </EditableText>
-                                                                    <span>: </span>
-                                                                    <EditableText
-                                                                        tag="span"
-                                                                        className="ml-1 flex-1"
-                                                                        onSave={(newValue) => handleEventEdit(century.id, event.id, 'text', newValue)}
-                                                                    >
-                                                                        {event.text}
-                                                                    </EditableText>
-                                                                    {isEditing && (
-                                                                        <button
-                                                                            onClick={() => handleEventDelete(century.id, event.id)}
-                                                                            className="ml-2 text-red-500 hover:text-red-700 opacity-70 group-hover:opacity-100 transition-opacity flex-shrink-0"
-                                                                            title="Eliminar evento"
-                                                                        >
-                                                                            <XCircle />
-                                                                        </button>
-                                                                    )}
+                                                        <ul className="space-y-2">
+                                                            {century.events.map((event, i) => (
+                                                                <li key={i} className="text-sm text-slate-700">
+                                                                    <span className="font-semibold text-slate-900">{event.year}:</span> {event.text}
                                                                 </li>
                                                             ))}
                                                         </ul>
-                                                        
-                                                        {/* Sección para Añadir Nuevo Evento */}
-                                                        {isEditing && (
-                                                            <div className="mt-4 pt-4 border-t border-slate-300">
-                                                                <h4 className="font-semibold text-slate-600 text-sm mb-2">Añadir nuevo apunte:</h4>
-                                                                <div className="flex items-center gap-2 bg-white p-2 rounded shadow-inner">
-                                                                    <input
-                                                                        type="text"
-                                                                        placeholder="Año/Periodo (ej: 1936)"
-                                                                        value={newEvent.year || ''}
-                                                                        onChange={(e) => handleNewEventChange(century.id, 'year', e.target.value)}
-                                                                        className="w-1/4 p-1 border rounded text-sm focus:ring-blue-500 focus:border-blue-500 min-w-[100px]"
-                                                                    />
-                                                                    <input
-                                                                        type="text"
-                                                                        placeholder="Descripción del evento..."
-                                                                        value={newEvent.text || ''}
-                                                                        onChange={(e) => handleNewEventChange(century.id, 'text', e.target.value)}
-                                                                        className="flex-1 p-1 border rounded text-sm focus:ring-blue-500 focus:border-blue-500"
-                                                                    />
-                                                                    <button
-                                                                        onClick={() => handleAddEvent(century.id)}
-                                                                        className="text-green-600 hover:text-green-800 p-1 flex-shrink-0"
-                                                                        title="Añadir Apunte"
-                                                                    >
-                                                                        <PlusCircle />
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                        )}
                                                     </div>
                                                     
                                                     {/* Sección de Literatura y Cultura */}
@@ -455,15 +193,11 @@
                                                             <BookOpen />
                                                             Literatura y Cultura
                                                         </h3>
-                                                        <EditableText
-                                                            tag="p"
-                                                            className="text-sm text-slate-700 leading-relaxed bg-white p-3 rounded shadow-inner min-h-[50px] whitespace-pre-wrap"
-                                                            onSave={(newLiterature) => handleLiteratureEdit(century.id, newLiterature)}
-                                                        >
+                                                        <p className="text-sm text-slate-700 leading-relaxed bg-white p-3 rounded shadow-inner whitespace-pre-wrap">
                                                             {century.literature}
-                                                        </EditableText>
+                                                        </p>
                                                         <p className="mt-2 text-xs text-slate-500">
-                                                            {isEditing ? "💡 Haz clic para editar. Los cambios se guardan automáticamente." : "💡 Activa el modo edición para modificar el contenido."}
+                                                            💡 Este diagrama es de solo lectura.
                                                         </p>
                                                     </div>
                                                 </div>
@@ -474,19 +208,31 @@
                             })}
                         </div>
 
-                        <div className="mt-10 bg-white rounded-lg p-6 shadow-xl">
-                            <h3 className="font-bold text-lg mb-3 text-slate-800">🎨 Código de Colores y Persistencia</h3>
-                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-                                {centuries.map((c, i) => (
-                                     <div key={i} className="flex items-center gap-2">
-                                        <div className={`w-6 h-6 ${c.color} border-2 ${c.borderColor} rounded`}></div>
-                                        <span className="text-sm">S. {c.century} - {c.title.split('→')[0].trim()}</span>
-                                    </div>
-                                ))}
+                        {/* Código de Colores al final (mantenido) */}
+                        <div className="mt-8 bg-white rounded-lg p-6 shadow-lg">
+                            <h3 className="font-bold text-lg mb-3 text-slate-800">🎨 Código de Colores</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 bg-red-100 border-2 border-red-500 rounded"></div>
+                                    <span className="text-sm">S. XV - Transición</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 bg-amber-100 border-2 border-amber-600 rounded"></div>
+                                    <span className="text-sm">S. XVI - Imperio</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 bg-purple-100 border-2 border-purple-600 rounded"></div>
+                                    <span className="text-sm">S. XVII - Barroco</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 bg-blue-100 border-2 border-blue-600 rounded"></div>
+                                    <span className="text-sm">S. XVIII - Ilustración</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-6 h-6 bg-green-100 border-2 border-green-600 rounded"></div>
+                                    <span className="text-sm">S. XIX - Contemporáneo</span>
+                                </div>
                             </div>
-                            <p className="text-sm text-blue-600 bg-blue-50 p-3 rounded">
-                                💾 **Nota Importante:** La aplicación usa **`localStorage`** para guardar tus ediciones y nuevos apuntes en tu navegador. Esto significa que los cambios persisten entre sesiones en el mismo dispositivo, pero no se sincronizan entre usuarios ni se guardan permanentemente en GitHub.
-                            </p>
                         </div>
                     </div>
                 </div>
